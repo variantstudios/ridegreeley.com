@@ -1,0 +1,65 @@
+<?php
+
+// $Id:
+
+/**
+* Implementation of hook_menu
+*
+* For settings page
+*/
+function nopreview_menu() {
+    $items = array();
+    $items['admin/settings/nopreview'] = array(
+      'title' => 'Hide Preview Buttons',
+      'description' => 'Hide Preview Buttons by content type.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('nopreview_settings_form'),
+      'access arguments' => array('administer imageapi'),
+    );
+  return $items;
+}
+
+/**
+* Form function for settings
+*/
+
+function nopreview_settings_form() {
+  $options = array('yes','no');
+  $node_types = node_get_types('names');
+  $node_previews = variable_get('nopreview_node_types', array());
+  $form['description'] = array(
+    '#tyoe' => 'markup',
+    '#weight' => '-100',
+    '#value' => t('Use these settings to configure which content types to hide the preview button for'),
+  );
+  $form['nopreview_node_types'] = array(
+      '#tree' => TRUE,
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#title' => t('Preview button by node type'),
+  );
+  foreach ($node_types as $key => $value) {
+    $form['nopreview_node_types'][$key] = array(
+      '#type' => 'select',
+      '#title' => t('Show Preview button for'). " $value",
+      '#default_value' => $node_previews[$key],
+      '#options' => $options,
+    );
+  }
+
+  return system_settings_form($form);
+}
+
+/**
+* Hide the buttons
+*/
+function nopreview_form_alter(&$form, $form_state, $form_id) {
+
+  $nopreviews = variable_get('nopreview_node_types', array());
+
+  if ($nopreviews[$form['type']['#value']] == 1) {
+    unset($form['buttons']['preview']);
+  }
+}
+?>

@@ -1,0 +1,8 @@
+name = No-Preview Button
+description = Remove preview button (especially for courses)
+package = Other
+core = 6.x
+
+version = "6.x-1.0"
+core = "6.x"
+project = "No-Preview Button"

@@ -1,0 +1,11 @@
+; $Id: campaign_monitor.info,v 1.1.2.7 2009/09/11 20:12:39 davyvandenbremt Exp $
+name = Campaign Monitor
+description = Campaign Monitor integration. Match Drupal user account fields to Campaign Monitor list fields. Allow users to (un)subscribe to Campain Monitor lists.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-09-16
+version = "6.x-1.1"
+core = "6.x"
+project = "campaign_monitor"
+datestamp = "1253096129"
+

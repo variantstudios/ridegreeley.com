@@ -1,0 +1,9 @@
+/* $Id: cm-style.css,v 1.1 2009/08/20 17:49:47 davyvandenbremt Exp $ */
+
+.campaign-monitor-lists-table tr.list-error {
+  background-color: #ffc9c9;
+}
+
+.block-campaign_monitor .form-text {
+  width: 100%;
+}

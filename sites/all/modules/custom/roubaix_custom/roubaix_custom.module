@@ -1,0 +1,10 @@
+<?php
+
+function roubaix_custom_form_alter(&$form, &$form_state, $form_id) {
+  switch($form_id) {
+    case "views_exposed_form":
+      //dpm($form);
+      //$form['difficulty']['#options'] = 
+    break;
+  }
+}

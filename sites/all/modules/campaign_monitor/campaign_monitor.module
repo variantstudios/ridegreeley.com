@@ -1,0 +1,273 @@
+<?php
+// $Id: campaign_monitor.module,v 1.1.2.2 2009/09/11 20:12:39 davyvandenbremt Exp $
+
+/**
+ * @file
+ * Drupal hooks
+ *
+ * @author Davy Van Den Bremt
+ */
+
+@require_once(drupal_get_path('module', 'campaign_monitor') .'/campaign_monitor.api.inc');
+@require_once(drupal_get_path('module', 'campaign_monitor') .'/campaign_monitor.db.inc');
+@require_once(drupal_get_path('module', 'campaign_monitor') .'/campaign_monitor.helpers.inc');
+
+/**
+ * Implementation of hook_perm().
+ */
+function campaign_monitor_perm() {
+  $permissions = array();
+
+  $permissions[] = 'administer lists';
+  $permissions[] = 'view reports';
+
+  // subscribe permission for all lists
+  $lists = campaign_monitor_db_get_lists(TRUE);
+  foreach ($lists as $list) {
+    $permissions[] = 'subscribe to '. $list->name_api;
+  }
+
+  return $permissions;
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function campaign_monitor_menu() {
+
+  // settings
+  $items['admin/settings/campaign_monitor'] = array(
+    'title' => 'Campaign Monitor',
+    'description' => 'Configure Campaign Monitor settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_monitor_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'campaign_monitor.settings.inc',
+  );
+  $items['admin/settings/campaign_monitor/info'] = array(
+    'title' => 'Info',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/settings/campaign_monitor/defaults'] = array(
+    'title' => 'Defaults',
+    'description' => 'Configure Campaign Monitor default settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_monitor_settings_defaults'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'access arguments' => array('administer site configuration'),
+    'file' => 'campaign_monitor.settings.inc',
+  );
+  $items['admin/settings/campaign_monitor/advanced'] = array(
+    'title' => 'Advanced',
+    'description' => 'Configure Campaign Monitor advanced settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_monitor_settings_advanced'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+    'access arguments' => array('administer site configuration'),
+    'file' => 'campaign_monitor.settings.inc',
+  );
+  $items['admin/settings/campaign_monitor/tools'] = array(
+    'title' => 'Tools',
+    'description' => 'Configure Campaign Monitor tools.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_monitor_settings_tools'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+    'access arguments' => array('administer site configuration'),
+    'file' => 'campaign_monitor.settings.inc',
+  );
+
+  // lists
+  $items['admin/build/campaign_monitor'] = array(
+    'title' => 'Campaign Monitor',
+    'description' => 'Configure Campaign Monitor lists.',
+    'page callback' => 'campaign_monitor_admin_lists',
+    'access arguments' => array('administer lists'),
+    'file' => 'campaign_monitor.admin.inc',
+  );
+  $items['admin/build/campaign_monitor/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/build/campaign_monitor/%campaign_monitor_list'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_monitor_admin_list_info_form', 3),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'access arguments' => array('administer lists'),
+    'file' => 'campaign_monitor.admin.inc',
+  );
+  $items['admin/build/campaign_monitor/%campaign_monitor_list/info'] = array(
+    'title' => 'Info',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/build/campaign_monitor/%campaign_monitor_list/field_mapping'] = array(
+    'title' => 'Field mapping',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_monitor_admin_field_mapping_form', 3),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'access arguments' => array('administer lists'),
+    'file' => 'campaign_monitor.admin.inc',
+  );
+  $items['admin/build/campaign_monitor/%campaign_monitor_list/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_monitor_admin_delete_confirm_form', 3),
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('administer lists'),
+    'file' => 'campaign_monitor.admin.inc',
+  );
+
+  // reports
+  $items['admin/reports/campaign_monitor'] = array(
+    'title' => 'Campaign Monitor',
+    'description' => 'View Campaign Monitor subscriber and request reports.',
+    'page callback' => 'campaign_monitor_reports_subscriptions',
+    'access arguments' => array('view reports'),
+    'file' => 'campaign_monitor.reports.inc',
+  );
+  $items['admin/reports/campaign_monitor/subscriptions'] = array(
+    'title' => 'Subscriptions',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/reports/campaign_monitor/requests'] = array(
+    'title' => 'Pending requests',
+    'page callback' => 'campaign_monitor_reports_requests',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'access arguments' => array('view reports'),
+    'file' => 'campaign_monitor.reports.inc',
+  );
+
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function campaign_monitor_theme() {
+  return array(
+    'campaign_monitor_admin_field_mapping_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'campaign_monitor.admin.inc',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_load().
+ */
+function campaign_monitor_list_load($lid = 0) {
+  return campaign_monitor_db_get_list($lid);
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function campaign_monitor_cron() {
+  module_load_include('inc', 'campaign_monitor', 'campaign_monitor.sync');
+
+  campaign_monitor_sync();
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function campaign_monitor_block($op = 'list', $delta = 0, $edit = array()) {
+  $blocks = array();
+
+  // block per list
+  $lists = campaign_monitor_db_get_lists(TRUE);
+  foreach ($lists as $list) {
+    $list = campaign_monitor_db_get_list($list->lid);
+
+    $blocks[$list->lid] = array(
+      'info' => t('Campaign monitor : !name', array('!name' => $list->name_clean)),
+      'cache' => BLOCK_CACHE_GLOBAL,
+    );
+  }
+
+  // common block for all lists
+  $blocks['common'] = array(
+    'info' => t('Campaign monitor : common subscription block'),
+    'cache' => BLOCK_CACHE_GLOBAL,
+  );
+
+  // block operations
+  switch ($op) {
+    // block listing
+    case 'list':
+      return $blocks;
+
+    // block viewing
+    case 'view':
+      module_load_include('inc', 'campaign_monitor', 'campaign_monitor.block');
+
+      // by default block subject equals block info
+      $block['subject'] = $blocks[$delta]['info'];
+
+      $show_block = FALSE;
+
+      // commmon block
+      if ($delta == 'common') {
+        $lid = NULL;
+
+        $block['subject'] = t('Newsletters');
+
+        $show_block = TRUE;
+      }
+
+      // block per list
+      else {
+        $lid = $delta;
+        $list = campaign_monitor_db_get_list($lid);
+
+        $block['subject'] = $list->name_clean;
+
+        if ($list->status == TRUE && user_access('subscribe to '. $list->name_api)) {
+          $show_block = TRUE;
+        }
+      }
+
+      if ($show_block) {
+        // fetch form
+        $form = campaign_monitor_block_subscription_list_form(array(), $lid);
+
+        // check if form is empty
+        if (!empty($form)) {
+          $block['content'] = drupal_get_form('campaign_monitor_block_subscription_list_form', $lid);
+        }
+      }
+
+      return $block;
+  }
+}
+
+// todo : hook_user : tab for subscription checkboxes
+
+/**
+ * Implementation of hook_user().
+ */
+function campaign_monitor_user($op, &$edit, &$user) {
+  if ($op == 'delete') {
+    $mail = $user->mail;
+
+    // deleting all pending requests
+    db_query("DELETE FROM {campaign_monitor_request} WHERE mail = '%s'", $mail);
+
+    // unsubscribe from all known lists
+    $lists = campaign_monitor_db_get_lists();
+    foreach ($lists as $list) {
+      campaign_monitor_db_save_request('unsubscribe', $mail, $list->lid);
+    }
+  }
+}

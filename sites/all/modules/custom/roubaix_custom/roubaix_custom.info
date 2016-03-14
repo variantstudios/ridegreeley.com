@@ -1,0 +1,3 @@
+name = Roubaix Custom
+description = A series of helper functions for the Roubaix Site
+core = 6.x

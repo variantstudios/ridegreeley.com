@@ -1,0 +1,7 @@
+
+RewriteEngine on
+
+RewriteCond %{HTTP_HOST} ^qr\.theroubaixbicyclecompany\.com$ [OR]
+RewriteCond %{HTTP_HOST} ^www\.qr\.theroubaixbicyclecompany\.com$
+RewriteRule ^/?$ "http\:\/\/www\.theroubaixbicyclecompany\.com\/\?qr" [R=301,L]
+

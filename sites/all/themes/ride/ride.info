@@ -1,0 +1,27 @@
+; This is the core info for the Ride Greeley theme
+
+; Theme info
+name = Ride
+description = This is a custom built theme.
+core = 6.x
+engine = phptemplate
+
+; Theme Regions
+regions[slider] = Slider
+regions[book] = Book
+regions[content] = Content
+regions[right] = Right
+regions[footer] = Footer
+
+; Website Stylesheets
+stylesheets[all][] = assets/css/reset.css
+stylesheets[all][] = assets/css/style.css
+stylesheets[all][] = assets/css/mosaic.css
+
+; Website JavaScript
+scripts[] = assets/js/mosaic.1.0.1.js
+scripts[] = assets/js/scripts.js
+
+; Conditional Stylesheets for IE 6 and 7
+conditional-stylesheets[if IE 7][all][] = assets/css/ie7.css
+conditional-stylesheets[if IE 6][all][] = assets/css/ie6.css
